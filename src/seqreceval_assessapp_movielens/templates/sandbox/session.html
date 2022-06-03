@@ -1,0 +1,52 @@
+{% extends "_base.html" %}
+
+{% block title %}Sandbox: Session{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="bg-light mt-4 p-5 rounded">
+    <h1>セッション情報</h1>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+      {% for message in messages %}
+      {{ message }}
+      {% if not loop.last %}
+      <br>
+      {% endif %}
+      {% endfor %}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <ul>
+      <li>ログイン済み: <code>{{ current_user.is_authenticated }}</code></li>
+      {% if current_user.is_authenticated %}
+      <li>判定者
+        <ul>
+          <li>ID: <code>{{ current_user.id }}</code></li>
+        </ul>
+      </li>
+      {% endif %}
+      <li>Cookie
+        <ul>
+          {% for key, value in request.cookies.items() %}
+          <li>{{ key }}: <code>{{ value }}</code></li>
+          {% endfor %}
+        </ul>
+      </li>
+    </ul>
+    <div class="d-flex">
+      <form class="me-2" action="{{ url_for('.session_login') }}" method="post">
+        <button class="btn btn-lg btn-primary" type="submit">ログイン</button>
+      </form>
+      <form class="me-2" action="{{ url_for('.session_logout') }}" method="post">
+        <button class="btn btn-lg btn-primary" type="submit">ログアウト</button>
+      </form>
+      <a class="btn btn-lg btn-primary" href="{{ url_for('.session_user') }}" role="button">ユーザページ</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

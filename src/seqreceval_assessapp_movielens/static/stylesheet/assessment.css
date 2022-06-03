@@ -1,0 +1,28 @@
+body {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.fit-to-viewport-item-container {
+  overflow: scroll;
+}
+
+.poster-image-container {
+  --bs-aspect-ratio: 100%;
+  background-color: #dbdbdb;
+}
+
+.poster-image {
+  object-fit: contain;
+}
+
+.card-movie-table {
+  font-size: .85rem;
+}
+
+.card-user-table {
+  font-size: .85rem;
+}
+
+.card-form-item {
+  font-size: .85rem;
+}

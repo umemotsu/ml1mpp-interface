@@ -1,0 +1,135 @@
+{% extends "_base.html" %}
+
+{% block title %}判定ページ{% endblock %}
+
+{% block stylesheet %}
+{{ super() }}
+<link href="{{ url_for('static', filename='stylesheet/assessment.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block header %}
+{{ super() }}
+<div class="modal fade" id="manual-modal" tabindex="-1" aria-labelledby="manual-modal-label" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="manual-modal-label">適合性判定マニュアル</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% include "assessor/_manual.html" %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block navbar %}
+<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#manual-modal">
+  マニュアル
+</button>
+{% endblock %}
+
+{% import "assessor/_macros.html" as macros %}
+
+{% block main %}
+{% set assessor_form = "assessor-form" %}
+<section class="container-fluid text-center info-section">
+  <div class="row">
+    <div class="col bg-white rounded shadow m-3 mb-2 p-2">
+      <p class="lead">
+        過去の時点
+        <span class="badge bg-secondary">1</span> - <span class="badge bg-secondary">{{ past_interactions|length }}</span>
+        {% if next_interaction %}
+        と次の時点
+        <span class="badge bg-secondary">{{ past_interactions|length + 2 }}</span>
+        {% endif %}
+        の視聴履歴を踏まえて、対象の時点
+        <span class="badge bg-secondary">{{ past_interactions|length + 1 }}</span>
+        {% if target_date %}
+        （{{ target_date.year }}年{{ target_date.month }}月{{ target_date.day }}日）
+        {% else %}
+        （対象日不明）
+        {% endif %}
+        の各映画に対して判定を行ってください。
+      </p>
+      <p class="text-muted">詳細な説明や判定基準を確認するには、右上の「マニュアル」ボタンをクリックしてください。</p>
+      <form id="{{ assessor_form }}" method="post" action="{{ url_for('.assessment_compelete') }}">
+        <div class="d-flex align-items-center col-6 mx-auto">
+          <div class="progress flex-fill me-3">
+            <div id="info-progress-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{ target_movies|length }}" style="width: 0%;"></div>
+          </div>
+          <div class="me-4">済み <span id="info-assessed-count">0</span> / 合計 <span id="info-total-count">{{ target_movies|length }}</span></div>
+          <input type="hidden" id="is-rookie" name="is-rookie" value="{% if is_rookie %}1{% else %}0{% endif %}">
+          <input type="hidden" id="user-id" name="user-id" value="{{ user.id }}">
+          <input type="hidden" id="condition-id" name="condition-id" value="{{ condition.id }}">
+          <input type="hidden" id="started-at" name="started-at" value="{{ started_at }}">
+          <button id="complete-button" class="btn btn-primary me-3" type="submit">
+            判定完了
+          </button>
+          <button id="skip-button" class="btn btn-outline-secondary" type="button" formaction="{{ url_for('.assessment_skip') }}">
+            スキップ
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+<section class="container-fluid py-2 item-section">
+  <div class="row">
+    <section class="col-8 past-item-section">
+      <div class="fit-to-viewport-item-container row row-cols-5 bg-white rounded shadow gx-2 px-1 pt-2 ms-1">
+        {% for past_interaction in past_interactions %}
+        <div class="col mb-2">
+          {{ macros.render_past(past_interaction, loop.index) }}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="col-2 target-item-section">
+      <div class="fit-to-viewport-item-container row justify-content-center bg-white rounded shadow gx-2 pt-2">
+        {% for movie in target_movies %}
+        <div class="col-10 mb-2">
+          {{ macros.render_target(movie, past_interactions|length + 1, assessor_form) }}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="col-2 next-item-section">
+      <div class="fit-to-viewport-item-container row justify-content-center bg-white rounded shadow gx-2 pt-2 me-1">
+        <div class="col-10 mb-2">
+          {% if next_interaction %}
+          {{ macros.render_next(next_interaction, past_interactions|length + 2) }}
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<div class="modal fade" id="error-modal" tabindex="-1" aria-labelledby="manual-modal-label" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="manual-modal-label">エラー</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="error-modal-message"></p>
+        <textarea class="error-modal-detail form-control" readonly></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ super() }}
+<script src="{{ url_for('static', filename='script/assessment.js') }}"></script>
+{% endblock %}

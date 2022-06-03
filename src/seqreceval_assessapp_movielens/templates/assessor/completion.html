@@ -1,0 +1,40 @@
+{% extends "_base.html" %}
+
+{% block title %}完了ページ{% endblock %}
+
+{% block main %}
+<div class="container">
+  <div class="bg-light mt-4 p-5 rounded">
+    <div class="container-fluid py-5">
+      {% if completion_code %}
+      <h1 class="display-5 fw-bold mb-5">お疲れ様でした</h1>
+      <p class="lead">以下のコードをクラウドソーシングサイトで入力して作業を完了してください。</p>
+      <p class="text-muted">
+        コピーボタンをクリックすれば、コードがクリップボードにコピーされるはずです。<br>
+        もしされなければ、手動で（過不足なく）コピーしてください。
+      </p>
+      <div class="input-group input-group-lg mb-3">
+        <input id="completion-code" class="form-control" type="text" value="{{ completion_code }}" readonly>
+        <button class="clipboard-button btn btn-primary" type="button"  data-clipboard-target="#completion-code"><i class="bi bi-clipboard"></i> コピー</button>
+      </div>
+      <p class="lead mt-4">
+        未判定のデータがある限り、何度でも作業可能です。</br>
+        ご協力いただける方は、クラウドソーシングサイトより再度ご参加ください。
+      </p>
+      {% else %}
+      <h1 class="display-5 fw-bold mb-5">コードの検証失敗</h1>
+      <p class="lead">作業の完了コードを検証できませんでした。</p>
+      <p class="lead">
+        判定ページでは、全て判定してから完了ボタンをクリックしてください。<br>
+        適切に操作したにもかかわらず、この画面が表示された場合は、作業を中断し、詳しい状況をご連絡いただけますと幸いです。
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ super() }}
+<script src="{{ url_for('static', filename='script/completion.js') }}"></script>
+{% endblock %}

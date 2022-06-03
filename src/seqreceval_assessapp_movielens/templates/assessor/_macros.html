@@ -1,0 +1,161 @@
+{% macro render_past(interaction, index) %}
+  {{ _render(interaction.movie, index, equal_hight=true, interaction=interaction) }}
+{% endmacro %}
+
+{% macro render_target(movie, index, assessor_form) %}
+  {{ _render(movie, index, assessor_form=assessor_form) }}
+{% endmacro %}
+
+{% macro render_next(interaction, index) %}
+  {{ _render(interaction.movie, index, interaction=interaction) }}
+{% endmacro %}
+
+{% macro _render(movie, index, equal_hight=false, interaction=none, assessor_form=none) %}
+<div class="card {% if equal_hight %}h-100{% endif %}">
+  <h6 class="card-header text-truncate fw-bold p-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ movie.title }}">
+    <span class="badge bg-secondary">{{ index }}</span>
+    {{ movie.title }}
+  </h6>
+  <div class="poster-image-container ratio">
+    {% if movie.poster_path %}
+    <img src="https://image.tmdb.org/t/p/original{{ movie.poster_path }}" class="poster-image card-img-top rounded-0" alt="movie poster">
+    {% else %}
+    <img src="{{ url_for('static', filename='image/default-poster.png') }}" class="poster-image card-img-top rounded-0" alt="movie poster">
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <h6 class="card-title">映画情報</h6>
+    <table class="card-movie-table table table-borderless align-middle mb-0">
+      <tbody>
+        <tr>
+          <th scope="row" class="py-0 ps-0">
+            <i class="bi bi-calendar" data-bs-toggle="tooltip" data-bs-placement="top" title="公開日"></i>
+          </th>
+          <td class="py-0 pe-0">
+            {% if movie.release %}
+            {{ movie.release.year }}年{{ movie.release.month }}月{{ movie.release.day }}日
+            {% else %}
+            （不明）
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="py-0 ps-0">
+            <i class="bi bi-clock" data-bs-toggle="tooltip" data-bs-placement="top" title="上映時間"></i>
+          </th>
+          <td class="py-0 pe-0">
+            {% if movie.runtime %}
+            {{ movie.runtime // 60 }}時間{{ movie.runtime % 60 }}分
+            {% else %}
+            （不明）
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="py-0 ps-0">
+            <i class="bi bi-tags" data-bs-toggle="tooltip" data-bs-placement="top" title="ジャンル"></i>
+          </th>
+          <td class="py-0 pe-0">
+            {% for genre in movie.genres %}
+            <span class="badge rounded-pill bg-dark bg-opacity-10 text-dark text-opacity-75">{{ genre.name }}</span>
+            {% endfor %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="py-0 ps-0">
+            <i class="bi bi-box-arrow-up-right" data-bs-toggle="tooltip" data-bs-placement="top" title="詳細ページ"></i>
+          </th>
+          <td class="py-0 pe-0">
+            {% if movie.tmdb_id %}
+            <a class="navbar-brand p-0 me-1" href="https://www.themoviedb.org/movie/{{ movie.tmdb_id }}" tabindex="-1" target="_blank" rel="noopener noreferrer">
+              <img src="{{ url_for('static', filename='image/logo-tmdb.svg') }}" alt="logo tmdb" width="61" height="8">
+            </a>
+            {% endif %}
+            {% if movie.imdb_id %}
+            <a class="navbar-brand p-0 me-1" href="https://www.imdb.com/title/{{ movie.imdb_id }}" tabindex="-1" target="_blank" rel="noopener noreferrer">
+              <img src="{{ url_for('static', filename='image/logo-imdb.svg') }}" alt="logo imdb" width="32" height="16">
+            </a>
+            {% endif %}
+            {% if not (movie.tmdb_id or movie.imdb_id) %}
+            （なし）
+            {% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    {% if interaction %}
+    <h6 class="card-title mt-2">評価情報</h6>
+    <table class="card-user-table table table-borderless align-middle mb-0">
+      <tbody>
+        <tr>
+          <th scope="row" class="py-0 ps-0">
+            <i class="bi bi-play-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="評価日"></i>
+          </th>
+          <td class="py-0 pe-0">
+            {% set interaction_date = interaction.interacted_at.date() %}
+            {{ interaction_date.year }}年{{ interaction_date.month }}月{{ interaction_date.day }}日
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="py-0 ps-0">
+            <i class="bi bi-hand-thumbs-up" data-bs-toggle="tooltip" data-bs-placement="top" title="評価値"></i>
+          </th>
+          <td class="py-0 pe-0">
+            {% set interaction_rating = interaction.rating %}
+            {% set interaction_rating_max = 5 %}
+            {% for i in range(interaction_rating) %}
+            <i class="bi bi-star-fill text-warning"></i>
+            {% endfor %}
+            {% for i in range(interaction_rating_max - interaction_rating) %}
+            <i class="bi bi-star-fill opacity-25"></i>
+            {% endfor %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+  {% if assessor_form %}
+  <div class="card-assessment-form card-footer p-3 bg-warning bg-opacity-10" data-movie-id="{{ movie.id }}">
+    <h6 class="card-title">このユーザはこの映画を…</h6>
+    <div class="card-form-item form-check">
+      <input id="user-watch-movie-{{ movie.id }}-radio-yes" class="form-check-input" form="{{ assessor_form }}" type="radio" name="user-watch-movie-{{ movie.id }}-radio" value="1" required>
+      <label class="form-check-label" for="user-watch-movie-{{ movie.id }}-radio-yes">
+        この時点で観そう
+      </label>
+    </div>
+    <div class="card-form-item form-check">
+      <input id="user-watch-movie-{{ movie.id }}-radio-no" class="form-check-input" form="{{ assessor_form }}" type="radio" name="user-watch-movie-{{ movie.id }}-radio" value="0" required>
+      <label class="form-check-label" for="user-watch-movie-{{ movie.id }}-radio-no">
+        この時点では観なさそう
+      </label>
+    </div>
+    <div class="card-form-item form-check">
+      <input id="user-watch-movie-{{ movie.id }}-radio-uncertain" class="form-check-input" form="{{ assessor_form }}" type="radio" name="user-watch-movie-{{ movie.id }}-radio" value="-1" required>
+      <label class="form-check-label" for="user-watch-movie-{{ movie.id }}-radio-uncertain">
+        どちらともいえない
+      </label>
+    </div>
+    <h6 class="card-title mt-2">あなたはこの映画を…</h6>
+    <div class="card-form-item form-check">
+      <input id="assessor-watch-movie-{{ movie.id }}-radio-yes" class="form-check-input" form="{{ assessor_form }}" type="radio" name="assessor-watch-movie-{{ movie.id }}-radio" value="2" required>
+      <label class="form-check-label" for="assessor-watch-movie-{{ movie.id }}-radio-yes">
+        観たことがある
+      </label>
+    </div>
+    <div class="card-form-item form-check">
+      <input id="assessor-watch-movie-{{ movie.id }}-radio-no-but-know" class="form-check-input" form="{{ assessor_form }}" type="radio" name="assessor-watch-movie-{{ movie.id }}-radio" value="1" required>
+      <label class="form-check-label" for="assessor-watch-movie-{{ movie.id }}-radio-no-but-know">
+        観たことはないが作業前から知っていた
+      </label>
+    </div>
+    <div class="card-form-item form-check">
+      <input id="assessor-watch-movie-{{ movie.id }}-radio-no-and-not-know" class="form-check-input" form="{{ assessor_form }}" type="radio" name="assessor-watch-movie-{{ movie.id }}-radio" value="0" required>
+      <label class="form-check-label" for="assessor-watch-movie-{{ movie.id }}-radio-no-and-not-know">
+        観たことはないし作業前は知らなかった
+      </label>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
